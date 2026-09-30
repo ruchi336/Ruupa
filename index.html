@@ -19,19 +19,36 @@
 </section><section class="stage"><h2>Image Preview</h2><div class="preview"><canvas id="canvas" width="600" height="600"></canvas></div><p class="small" id="dimensions">Preview: 600 × 600 pixels</p><p class="small">AI cutout එකේ ඉතා සිහින් hair strands කිහිපයක් නැති විය හැක. Original details 100% preserve කිරීම සහතික කළ නොහැක.</p></section></div>
 <script type="module">
 // Lazy single-flight initialization: concurrent Apply clicks share one initialization.
-const VERSION='0.10.22';
-const CDNS=[`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/+esm`, `https://esm.sh/@mediapipe/tasks-vision@${VERSION}`];
+const VERSION='0.10.14';
+// Official-style built bundles are less fragile than CDN-generated ESM transforms.
+const CDNS=[
+  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/vision_bundle.mjs`,
+  `https://unpkg.com/@mediapipe/tasks-vision@${VERSION}/vision_bundle.mjs`,
+  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/+esm`
+];
 const WASM=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/wasm`;
 const MODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
 const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
 let source=null,mask=null,segmenter=null,loadPromise=null,ready=false,photoVersion=0,processing=false;
 function status(message,kind='info'){$('status').textContent=message;$('status').dataset.kind=kind}
 function withTimeout(promise,ms,what){let id;return Promise.race([promise,new Promise((_,reject)=>{id=setTimeout(()=>reject(new Error(`${what} timed out after ${Math.round(ms/1000)} seconds`)),ms)})]).finally(()=>clearTimeout(id))}
-function explainError(error){const message=String(error?.message||error);if(/fetch|network|failed to load|import|CORS/i.test(message))return 'AI files download කිරීමට බැරි වුණා. Internet / browser blockers පරීක්ෂා කර Retry කරන්න. ('+message+')';if(/memory|allocation/i.test(message))return 'Memory ප්‍රමාණවත් නැහැ. කුඩා photo එකක් භාවිතා කරන්න. ('+message+')';return message}
-async function importVision(){let last;for(const url of CDNS){try{const lib=await withTimeout(import(url),25000,'AI library');if(!lib.FilesetResolver||!lib.ImageSegmenter)throw Error('MediaPipe exports missing');return lib}catch(e){last=e;console.warn('AI CDN load failed:',url,e)}}throw Error('AI JavaScript library unavailable: '+last?.message)}
+function explainError(error){const message=String(error?.message||error);if(/fetch|network|failed to load|import|CORS|CDN|module|unavailable/i.test(message))return 'AI library download අසාර්ථකයි. වෙනත් CDN අත්හදා බැලුවා. Internet, ad blockers, DNS පරීක්ෂා කර Retry කරන්න. ('+message+')';if(/memory|allocation/i.test(message))return 'Memory ප්‍රමාණවත් නැහැ. කුඩා photo එකක් භාවිතා කරන්න. ('+message+')';return message}
+async function importVision(){
+ let last;
+ for(const url of CDNS){
+  try{
+   status('AI library load වෙමින්… '+new URL(url).hostname);
+   const mod=await withTimeout(import(/* webpackIgnore: true */ url),20000,'AI library');
+   const lib=(mod.FilesetResolver&&mod.ImageSegmenter)?mod:(mod.default||mod);
+   if(!lib.FilesetResolver||!lib.ImageSegmenter)throw new Error('MediaPipe exports missing');
+   return lib;
+  }catch(e){last=e;console.warn('AI CDN load failed:',url,e)}
+ }
+ throw new Error('AI JavaScript library unavailable: '+(last?.message||'all CDNs failed'));
+}
 async function initializeAI(){if(segmenter)return segmenter;if(loadPromise)return loadPromise;
   loadPromise=(async()=>{status('AI library download වෙමින්…');const lib=await importVision();status('AI WASM + portrait model load වෙමින්… (පළමු වර තත්පර කිහිපයක් යා හැක)');
-  const vision=await withTimeout(lib.FilesetResolver.forVisionTasks(WASM),30000,'AI WASM');
+  const vision=await withTimeout(lib.FilesetResolver.forVisionTasks(WASM),45000,'AI WASM');
   const instance=await withTimeout(lib.ImageSegmenter.createFromOptions(vision,{baseOptions:{modelAssetPath:MODEL,delegate:'CPU'},runningMode:'IMAGE',outputConfidenceMasks:true,outputCategoryMask:false}),60000,'Portrait model');
   segmenter=instance;return instance})();
   try{return await loadPromise}catch(error){segmenter=null;throw error}finally{loadPromise=null}
