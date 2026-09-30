@@ -1,101 +1,104 @@
-<!doctype html>
-<html lang="si"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portrait Studio | Background & Photo Size Editor</title>
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruupa | රූප — Pictures for learning</title>
+<meta name="description" content="Ruupa: search pictures for school projects in Sinhala, English, Tamil and Singlish. Large previews and download options.">
 <style>
-:root{font-family:system-ui,'Noto Sans Sinhala',sans-serif;color:#17233d;background:#edf3fc}*{box-sizing:border-box}body{margin:0}header{background:#152c59;color:white;padding:19px 25px}header h1{margin:0;font-size:23px}header p{margin:7px 0 0;color:#d8e6ff;font-size:13px}.wrap{max-width:1250px;margin:auto;padding:20px;display:grid;grid-template-columns:370px 1fr;gap:20px}.panel,.stage{background:white;border-radius:16px;padding:22px;box-shadow:0 4px 24px #1e40601a}h2{font-size:17px;margin:3px 0 13px}label{display:block;font-size:13px;font-weight:650;margin:13px 0 6px}input[type=file],input[type=number],input[type=text],select{width:100%;padding:10px;border:1px solid #bdcce3;border-radius:8px;background:white}input[type=color]{width:56px;height:42px;border:0;background:none;cursor:pointer}.flex{display:flex;gap:10px;align-items:center}.flex>*{flex:1}.flex input[type=color]{flex:0 0 58px}.check{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid #d8e1ed;border-radius:8px;margin:6px 0;font-weight:500}.check input{accent-color:#236aff;width:17px;height:17px}.note{font-size:12px;color:#617084;line-height:1.55;margin:12px 0}button{border:0;border-radius:10px;padding:13px 18px;background:#1765e6;color:white;font-weight:700;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}#status[data-kind="error"]{color:#a11d2a}#status[data-kind="ok"]{color:#087044}#retry{display:none;background:#7a4ad8;margin-top:6px}#retry.visible{display:inline-block}.actions{display:flex;gap:10px;margin-top:18px}.actions button{flex:1}#download{background:#11845c}.preview{background:repeating-conic-gradient(#e0e6f0 0% 25%,#fff 0% 50%) 50%/22px 22px;display:grid;place-items:center;min-height:400px;border-radius:12px;overflow:hidden}#canvas{max-width:100%;max-height:70vh;object-fit:contain;box-shadow:0 3px 20px #0002}#status{font-size:13px;color:#325787;min-height:38px;margin-top:12px}details{border-top:1px solid #e5ecf5;margin-top:12px;padding-top:12px}summary{cursor:pointer;font-weight:650}.small{font-size:12px;color:#60718c}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:800px){.wrap{grid-template-columns:1fr}.preview{min-height:330px}} </style></head>
-<body><header><h1>📷 Portrait Studio</h1><p>AI background removal • Smooth hair edges • Custom print sizes • Optional garment overlays</p></header>
-<div class="wrap"><section class="panel">
-<h2>1. Upload Photo</h2><input id="upload" type="file" accept="image/*"><p class="note">Portrait එකක් upload කරන්න. Original මුහුණ/skin pixels නැවත AI මගින් generate නොකරයි.</p>
-<h2>2. Background Colour</h2><div class="flex"><input id="color" type="color" value="#a9ddff" aria-label="Background colour"><input id="hex" type="text" value="#A9DDFF" placeholder="#A9DDFF" maxlength="7"></div>
-<h2 style="margin-top:20px">3. Clothing Options</h2><p class="note">එකක්, කිහිපයක් හෝ සියල්ල තෝරන්න. මේවා සරල vector overlays පමණයි; AI-generated realistic clothing නොවේ.</p>
-<label class="check"><input type="checkbox" class="garment" value="coat"> Black coat</label>
-<label class="check"><input type="checkbox" class="garment" value="tie"> Black tie</label>
-<label class="check"><input type="checkbox" class="garment" value="shirt"> White shirt</label>
-<label class="check"><input type="checkbox" class="garment" value="trousers"> Black trousers</label>
-<label class="check"><input type="checkbox" class="garment" value="shoes"> Black shoes</label>
-<details><summary>Overlay adjustment</summary><label>Garment Width <span id="scaleVal">100%</span></label><input id="scale" type="range" min="60" max="160" value="100" style="width:100%"><label>Vertical Position <span id="positionVal">0%</span></label><input id="position" type="range" min="-35" max="35" value="0" style="width:100%"><p class="note">Garments are stylized guides, not a real virtual try-on. Bottom garments may not appear in a headshot crop.</p></details>
-<h2 style="margin-top:20px">4. Custom Photo Size</h2><div class="row2"><div><label>Width</label><input id="width" type="number" min="0.1" max="1000" value="2" step="0.1"></div><div><label>Height</label><input id="height" type="number" min="0.1" max="1000" value="2" step="0.1"></div></div><label>Measurement Unit</label><select id="unit"><option value="in">Inches</option><option value="cm">Centimetres (cm)</option><option value="mm">Millimetres (mm)</option></select><label>Print resolution</label><select id="dpi"><option value="300">300 DPI (print quality)</option><option value="150">150 DPI</option><option value="72">72 DPI</option></select>
-<div class="actions"><button id="apply">✨ Apply</button><button id="download" disabled>⬇ Download PNG</button></div><div id="status" role="status" aria-live="polite">Photo එකක් upload කර Apply කරන්න.</div><button id="retry" type="button">↻ Retry AI Loading</button>
-<p class="note">පළමු සැකසීමේදී AI segmentation model එක අන්තර්ජාලයෙන් load වෙයි. සියලු image processing browser එක තුළ සිදු වේ. හොඳ ප්‍රතිඵල සඳහා පැහැදිලි portrait එකක් භාවිතා කරන්න.</p>
-</section><section class="stage"><h2>Image Preview</h2><div class="preview"><canvas id="canvas" width="600" height="600"></canvas></div><p class="small" id="dimensions">Preview: 600 × 600 pixels</p><p class="small">AI cutout එකේ ඉතා සිහින් hair strands කිහිපයක් නැති විය හැක. Original details 100% preserve කිරීම සහතික කළ නොහැක.</p></section></div>
-<script type="module">
-// Lazy single-flight initialization: concurrent Apply clicks share one initialization.
-const VERSION='0.10.14';
-// Official-style built bundles are less fragile than CDN-generated ESM transforms.
-const CDNS=[
-  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/vision_bundle.mjs`,
-  `https://unpkg.com/@mediapipe/tasks-vision@${VERSION}/vision_bundle.mjs`,
-  `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/+esm`
+:root{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:#1a2842;background:#f5f8fd;--blue:#345af4;--border:#dae3f1}*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}header{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}.top{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;padding:15px 20px;gap:15px}.brand{font-weight:900;font-size:30px;letter-spacing:-1px;color:#2749dc}.brand span{color:#f3a32c}.tag{color:#62728c;font-size:13px}main{max-width:1200px;margin:auto;padding:28px 20px 55px}.hero{background:linear-gradient(125deg,#e0ebff,#fcfdff 58%,#fff0de);padding:30px;border-radius:23px;border:1px solid #dce8fe}.hero h1{font-size:clamp(25px,4vw,43px);margin:0 0 8px}.hero p{color:#556785;margin:0 0 22px}.searchbar{display:flex;background:white;border:1px solid #b8c8e8;box-shadow:0 9px 30px #334d9911;border-radius:15px;padding:7px;gap:8px}.searchbar input{flex:1;min-width:0;padding:11px 15px;border:0;outline:none;font-size:17px}.primary{border:0;border-radius:11px;background:var(--blue);color:#fff;font-weight:750;padding:12px 21px}.primary:hover{background:#2143d1}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.chips button{border:1px solid #d2dcf0;border-radius:24px;background:#fff;padding:8px 13px;color:#405575}.chips button:hover{background:#e9f0ff}.resultline{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:27px 0 14px}.resultline h2{margin:0;font-size:22px}.muted{color:#63738a;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:16px}.tile{border:1px solid #e1e7f2;background:#fff;border-radius:15px;overflow:hidden;text-align:left;box-shadow:0 3px 12px #18376a08;transition:transform .15s,box-shadow .15s}.tile:hover,.tile:focus-visible{transform:translateY(-3px);box-shadow:0 9px 25px #1b336a20;outline:2px solid #6f8cff}.tile img{display:block;aspect-ratio:1/1;width:100%;object-fit:contain;background:#eff4fb}.tile .name{display:block;padding:10px 12px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.empty{padding:46px 20px;text-align:center;background:white;border:1px dashed #ccd8ef;border-radius:16px;color:#526788}.center{text-align:center;margin:22px}.ghost{border:1px solid #bac9e7;border-radius:10px;padding:11px 18px;background:white;color:#2e4d9e;font-weight:650}.ghost:hover{background:#edf3ff}.hidden{display:none!important}.loading{width:27px;height:27px;border:3px solid #dce5fd;border-top-color:#345af4;border-radius:50%;animation:spin 1s linear infinite;margin:auto}@keyframes spin{to{transform:rotate(360deg)}}dialog{padding:0;border:0;border-radius:19px;width:min(1020px,96vw);max-height:94vh;box-shadow:0 20px 80px #0005}dialog::backdrop{background:#14213bba}.viewer{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(250px,0.75fr);max-height:92vh}.viewimage{background:#eef3fb;min-height:360px;display:flex;justify-content:center;align-items:center;padding:20px;overflow:auto}.viewimage img{display:block;max-width:100%;max-height:76vh;object-fit:contain}.details{padding:27px 24px;overflow:auto}.details h2{font-size:20px;overflow-wrap:anywhere}.details p{font-size:14px;color:#5e6b7d;line-height:1.6}.actions{display:flex;flex-wrap:wrap;gap:9px}.close{float:right;background:#eff2f9;border:0;border-radius:50%;font-size:23px;height:36px;width:36px}.label{font-size:12px;color:#62718a;text-transform:uppercase;letter-spacing:.06em;font-weight:800}.credit{overflow-wrap:anywhere}.credit a{color:#264fc8}footer{margin-top:36px;border-top:1px solid #dbe5f4;padding:20px 0;color:#64748b;font-size:13px}#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#233655;color:white;padding:12px 19px;border-radius:12px;max-width:90vw;z-index:30;display:none}@media(max-width:660px){main{padding:17px 13px}.hero{padding:24px 17px}.searchbar{flex-wrap:wrap}.searchbar button{width:100%}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.viewer{display:block;overflow:auto}.viewimage{min-height:230px}.viewimage img{max-height:48vh}.details{padding:18px}.top{padding:12px 15px}}
+</style></head>
+<body>
+<header><div class="top"><div><div class="brand">Ruu<span>pa</span> <span style="font-size:20px;color:#314970">රූප</span></div><div class="tag">Find pictures • පින්තූර සොයන්න • படங்களைத் தேடுங்கள்</div></div><div class="muted">Free learning picture search</div></div></header>
+<main>
+<section class="hero"><h1>ඔබට ඕනෑම රූපයක් සොයන්න 🌈</h1><p>Search in English, සිංහල, தமிழ் or Singlish. පින්තූර බලන්න • ලොකු කර බලන්න • Download කරන්න.</p>
+<form id="searchForm" class="searchbar"><input id="query" type="search" required placeholder="උදා: සතුන් / animals / mirugangal / saththu" autocomplete="off" aria-label="Search pictures"><button class="primary" type="submit">🔎 Search / සොයන්න</button></form>
+<div class="chips" id="chips"></div></section>
+<div class="resultline"><h2 id="heading">Popular pictures</h2><div id="status" class="muted" role="status" aria-live="polite">Choose a category or search</div></div>
+<div id="results" class="grid"></div>
+<div id="empty" class="empty">👆 සෙවීමට වචනයක් ලියන්න හෝ category එකක් තෝරන්න.</div>
+<div id="loader" class="empty hidden"><div class="loading"></div><p>පින්තූර සොයමින්... Searching pictures</p></div>
+<div class="center"><button id="more" class="ghost hidden">Load more images / තවත් රූප</button></div>
+<footer>Pictures are fetched from Wikimedia Commons. Images have different licences; check the source and credits before reuse. Image results are not independently screened for children's suitability. Adult supervision is recommended for young children.</footer>
+</main>
+<dialog id="preview" aria-label="Large image preview"><div class="viewer"><div class="viewimage"><img id="bigImage" alt="Large image preview"></div><aside class="details"><button class="close" id="close" aria-label="Close preview">×</button><div class="label">Image Preview</div><h2 id="pictureTitle"></h2><p id="dimensions"></p><div class="actions"><button class="primary" id="download">⬇ Download image</button><a id="original" target="_blank" rel="noopener noreferrer" class="ghost" style="text-decoration:none">View original ↗</a></div><p id="downloadStatus" aria-live="polite"></p><hr style="border:0;border-top:1px solid #e0e7f1;margin:25px 0"><div class="label">Source & license</div><p class="credit" id="credits"></p><p><a id="sourcePage" target="_blank" rel="noopener noreferrer">View file and attribution details on Wikimedia Commons ↗</a></p></aside></div></dialog>
+<div id="toast" role="status"></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const categories=[
+ {en:'Animals',si:'සතුන්',ta:'விலங்குகள்',words:['animal','animals','saththu','sattu','sathun','saththuwo','satun','mirugam','mirugangal','vilangugal','சத்து','සතුන්','සතා','விலங்குகள்','மிருகங்கள்']},
+ {en:'Birds',si:'කුරුල්ලෝ',ta:'பறவைகள்',words:['bird','birds','kurullo','kurulu','kurullō','kuruwo','කුරුල්ලෝ','කුරුල්ලන්','කුරුල්ලා','பறவைகள்','paravaigal','paravai']},
+ {en:'Fruits',si:'පලතුරු',ta:'பழங்கள்',words:['fruit','fruits','palathuru','palaturu','පලතුරු','පළතුරු','பழங்கள்','pazhangal','palangal']},
+ {en:'Vegetables',si:'එළවළු',ta:'காய்கறிகள்',words:['vegetable','vegetables','elawalu','elavalu','එළවළු','காய்கறிகள்','kaikarigal','kaykarigal']},
+ {en:'Flowers',si:'මල්',ta:'பூக்கள்',words:['flower','flowers','mal','mal wel','මල්','මල','பூக்கள்','pookkal','poo']},
+ {en:'Vehicles',si:'වාහන',ta:'வாகனங்கள்',words:['vehicle','vehicles','wahana','vaahana','වාහන','වාහනය','வாகனங்கள்','vahanangal']},
+ {en:'Trees',si:'ගස්',ta:'மரங்கள்',words:['tree','trees','gas','gass','ගස්','ගස','மரங்கள்','marangal']},
+ {en:'Fish',si:'මාළු',ta:'மீன்கள்',words:['fish','maalu','malu','මාළු','மீன்','மீன்கள்','meen','meengal']},
+ {en:'Butterflies',si:'සමනලුන්',ta:'பட்டாம்பூச்சிகள்',words:['butterfly','butterflies','samanalaya','samanallu','සමනලයා','සමනලුන්','பட்டாம்பூச்சிகள்','pattampoochi']},
+ {en:'Insects',si:'කෘමීන්',ta:'பூச்சிகள்',words:['insect','insects','krumin','kroomin','කෘමීන්','பூச்சிகள்','poochigal']},
+ {en:'Sports',si:'ක්‍රීඩා',ta:'விளையாட்டு',words:['sport','sports','kreeda','krida','ක්‍රීඩා','விளையாட்டு','vilaiyattu']},
+ {en:'School supplies',si:'පාසල් උපකරණ',ta:'பள்ளி பொருட்கள்',words:['school supplies','school items','paasal upakarana','පාසල් උපකරණ','பள்ளி பொருட்கள்','palli porutkal']},
+ {en:'Body parts',si:'ශරීර අවයව',ta:'உடல் உறுப்புகள்',words:['body parts','sharira avayava','ශරීර අවයව','உடல் உறுப்புகள்','udal uruppugal']},
+ {en:'Weather',si:'කාලගුණය',ta:'வானிலை',words:['weather','kalagunaya','කාලගුණය','வானிலை','vanilai']},
+ {en:'Musical instruments',si:'සංගීත භාණ්ඩ',ta:'இசைக்கருவிகள்',words:['musical instruments','sangeetha bhanda','සංගීත භාණ්ඩ','இசைக்கருவிகள்','isaikkaruvigal']},
+ {en:'Farm animals',si:'ගොවිපළ සතුන්',ta:'பண்ணை விலங்குகள்',words:['farm animals','farm animal','ගොවිපළ සතුන්','pannai vilangugal','பண்ணை விலங்குகள்']}
 ];
-const WASM=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSION}/wasm`;
-const MODEL='https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
-const $=id=>document.getElementById(id),canvas=$('canvas'),ctx=canvas.getContext('2d');
-let source=null,mask=null,segmenter=null,loadPromise=null,ready=false,photoVersion=0,processing=false;
-function status(message,kind='info'){$('status').textContent=message;$('status').dataset.kind=kind}
-function withTimeout(promise,ms,what){let id;return Promise.race([promise,new Promise((_,reject)=>{id=setTimeout(()=>reject(new Error(`${what} timed out after ${Math.round(ms/1000)} seconds`)),ms)})]).finally(()=>clearTimeout(id))}
-function explainError(error){const message=String(error?.message||error);if(/fetch|network|failed to load|import|CORS|CDN|module|unavailable/i.test(message))return 'AI library download අසාර්ථකයි. වෙනත් CDN අත්හදා බැලුවා. Internet, ad blockers, DNS පරීක්ෂා කර Retry කරන්න. ('+message+')';if(/memory|allocation/i.test(message))return 'Memory ප්‍රමාණවත් නැහැ. කුඩා photo එකක් භාවිතා කරන්න. ('+message+')';return message}
-async function importVision(){
- let last;
- for(const url of CDNS){
-  try{
-   status('AI library load වෙමින්… '+new URL(url).hostname);
-   const mod=await withTimeout(import(/* webpackIgnore: true */ url),20000,'AI library');
-   const lib=(mod.FilesetResolver&&mod.ImageSegmenter)?mod:(mod.default||mod);
-   if(!lib.FilesetResolver||!lib.ImageSegmenter)throw new Error('MediaPipe exports missing');
-   return lib;
-  }catch(e){last=e;console.warn('AI CDN load failed:',url,e)}
- }
- throw new Error('AI JavaScript library unavailable: '+(last?.message||'all CDNs failed'));
-}
-async function initializeAI(){if(segmenter)return segmenter;if(loadPromise)return loadPromise;
-  loadPromise=(async()=>{status('AI library download වෙමින්…');const lib=await importVision();status('AI WASM + portrait model load වෙමින්… (පළමු වර තත්පර කිහිපයක් යා හැක)');
-  const vision=await withTimeout(lib.FilesetResolver.forVisionTasks(WASM),45000,'AI WASM');
-  const instance=await withTimeout(lib.ImageSegmenter.createFromOptions(vision,{baseOptions:{modelAssetPath:MODEL,delegate:'CPU'},runningMode:'IMAGE',outputConfidenceMasks:true,outputCategoryMask:false}),60000,'Portrait model');
-  segmenter=instance;return instance})();
-  try{return await loadPromise}catch(error){segmenter=null;throw error}finally{loadPromise=null}
-}
-function getCutout(ai,image){const result=ai.segment(image);try{const masks=result.confidenceMasks;if(!masks?.length)throw Error('No segmentation confidence masks returned');
- // Selfie segmenter outputs background (0) then person (1).
- const m=masks.length>1?masks[1]:masks[0];const a=new Float32Array(m.getAsFloat32Array());
- if(a.length!==m.width*m.height)throw Error('Invalid AI mask size');return{data:a,w:m.width,h:m.height};
-}finally{result?.close?.()}}
-function colorValid(v){return /^#[\da-fA-F]{6}$/.test(v)}
-$('color').addEventListener('input',e=>{$('hex').value=e.target.value.toUpperCase()});
-$('hex').addEventListener('input',e=>{if(colorValid(e.target.value))$('color').value=e.target.value});
-for(const x of ['scale','position'])$(x).addEventListener('input',()=>{$('scaleVal').textContent=$('scale').value+'%';$('positionVal').textContent=$('position').value+'%'});
-$('upload').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;const version=++photoVersion;const url=URL.createObjectURL(file);try{
-const img=new Image();await new Promise((ok,fail)=>{img.onload=ok;img.onerror=()=>fail(new Error('Unsupported or damaged image'));img.src=url});if(version!==photoVersion)return;
-source=img;mask=null;ready=false;$('download').disabled=true;const ratio=img.naturalWidth/img.naturalHeight;canvas.width=600;canvas.height=Math.max(250,Math.round(600/ratio));ctx.drawImage(img,0,0,canvas.width,canvas.height);$('dimensions').textContent=`Source: ${img.naturalWidth} × ${img.naturalHeight} px`;
-status('Photo uploaded ✓ Apply ක්ලික් කරන්න.');$('retry').classList.remove('visible')
-}catch(err){if(version===photoVersion)status('Image load failed: '+explainError(err),'error')}finally{URL.revokeObjectURL(url)}});
-function svgShape(type, x, y, w, h, context){context.save();context.translate(x,y);context.scale(w/400,h/500);const p=(points,fill,stroke)=>{context.beginPath();points.forEach(([a,b],i)=>i?context.lineTo(a,b):context.moveTo(a,b));context.closePath();context.fillStyle=fill;context.fill();if(stroke){context.strokeStyle=stroke;context.lineWidth=2;context.stroke()}};
-if(type==='shirt'){p([[107,36],[155,5],[200,47],[245,5],[293,36],[335,120],[301,390],[99,390],[65,120]],'#f5f6f8','#9daabd');p([[156,8],[200,48],[175,125],[133,39]],'#ffffff','#b5bbcb');p([[244,8],[200,48],[225,125],[267,39]],'#ffffff','#b5bbcb')}
-if(type==='tie'){p([[193,52],[207,52],[218,75],[200,97],[182,75]],'#141720');p([[200,95],[216,116],[205,264],[200,286],[195,264],[184,116]],'#171a22')}
-if(type==='coat'){p([[105,20],[153,0],[177,132],[190,360],[49,400],[36,124]],'#161d29','#465061');p([[295,20],[247,0],[223,132],[210,360],[351,400],[364,124]],'#161d29','#465061');p([[154,0],[183,110],[155,218],[110,37]],'#242c39','#687080');p([[246,0],[217,110],[245,218],[290,37]],'#242c39','#687080')}
-if(type==='trousers'){p([[98,10],[302,10],[294,480],[211,480],[200,200],[189,480],[106,480]],'#151b27','#3e4553')}
-if(type==='shoes'){p([[69,165],[179,165],[194,215],[185,238],[30,238],[26,215]],'#161b22','#454b55');p([[221,165],[331,165],[374,215],[370,238],[215,238],[206,215]],'#161b22','#454b55')}
-context.restore()}
-function pxSize(){let w=Number($('width').value),h=Number($('height').value),dpi=Number($('dpi').value),unit=$('unit').value;if(!Number.isFinite(w)||!Number.isFinite(h)||w<=0||h<=0)throw Error('Enter valid width and height');const factor=unit==='in'?1:unit==='cm'?1/2.54:1/25.4;const W=Math.round(w*factor*dpi),H=Math.round(h*factor*dpi);if(W<16||H<16||W>5000||H>5000||W*H>16000000)throw Error('Photo size too large/small. Maximum 5000 px per side, 16 MP.');return[W,H]}
-function render(){const[W,H]=pxSize();const hex=$('hex').value.trim();if(!colorValid(hex))throw Error('Use a valid HEX color, e.g. #A9DDFF');canvas.width=W;canvas.height=H;ctx.fillStyle=hex;ctx.fillRect(0,0,W,H);
-// Cover crop source into output; original RGB photo remains unaltered within the cutout.
-const s=Math.max(W/source.naturalWidth,H/source.naturalHeight),dw=source.naturalWidth*s,dh=source.naturalHeight*s,dx=(W-dw)/2,dy=(H-dh)/2;
-const person=document.createElement('canvas');person.width=W;person.height=H;const pc=person.getContext('2d');pc.drawImage(source,dx,dy,dw,dh);
-const mc=document.createElement('canvas');mc.width=mask.w;mc.height=mask.h;const mx=mc.getContext('2d'),image=mx.createImageData(mask.w,mask.h);for(let i=0;i<mask.data.length;i++){const val=mask.data[i];const alpha=Math.max(0,Math.min(1,(val-0.12)/0.80));image.data[i*4]=image.data[i*4+1]=image.data[i*4+2]=255;image.data[i*4+3]=Math.round(alpha*255)}mx.putImageData(image,0,0);
-const fullMask=document.createElement('canvas');fullMask.width=W;fullMask.height=H;const fc=fullMask.getContext('2d');fc.imageSmoothingEnabled=true;fc.imageSmoothingQuality='high';fc.drawImage(mc,dx,dy,dw,dh);
-pc.globalCompositeOperation='destination-in';pc.drawImage(fullMask,0,0);pc.globalCompositeOperation='source-over';ctx.drawImage(person,0,0);
-const selected=[...document.querySelectorAll('.garment:checked')].map(e=>e.value);const scale=Number($('scale').value)/100,shift=Number($('position').value)/100*H;const gw=W*0.8*scale,gh=H*0.60*scale,gx=(W-gw)/2,gy=H*0.64+shift;
-// Vector-only illustrative overlays, proportional to canvas, not pose tracking.
-for(const g of ['shirt','trousers','shoes','tie','coat'])if(selected.includes(g)){if(g==='trousers')svgShape(g,gx,gy+gh*.65,gw,gh,ctx);else if(g==='shoes')svgShape(g,gx,gy+gh*1.5,gw,gh*.5,ctx);else svgShape(g,gx,gy,gw,gh,ctx)}
-$('dimensions').textContent=`Output: ${W} × ${H} pixels (${ $('dpi').value } DPI)`;ready=true;$('download').disabled=false;status('✓ Ready. Download PNG ක්ලික් කරන්න. Garment overlay controls වෙනස් කළොත් Apply නැවත ක්ලික් කරන්න.');}
-async function apply(){if(processing)return;if(!source){status('පළමුව image එක upload කරන්න.','error');return}
-processing=true;const version=photoVersion;$('apply').disabled=true;$('apply').textContent='⌛ Processing...';$('retry').classList.remove('visible');
-try{pxSize();if(!colorValid($('hex').value.trim()))throw Error('Enter valid HEX colour (#A9DDFF)');const ai=await initializeAI();
-if(version!==photoVersion){status('New photo uploaded. Apply නැවත ක්ලික් කරන්න.');return}
-status('Person mask calculate කරමින්…');await new Promise(resolve=>requestAnimationFrame(resolve));
-if(!mask)mask=getCutout(ai,source);if(version!==photoVersion){mask=null;return}render();status('✓ Background applied. Download PNG ක්ලික් කරන්න.','ok');
-}catch(err){console.error('Apply error:',err);ready=false;$('download').disabled=true;status('❌ '+explainError(err),'error');$('retry').classList.add('visible')}
-finally{processing=false;$('apply').disabled=false;$('apply').textContent='✨ Apply'}}
-$('apply').addEventListener('click',apply);
-$('retry').addEventListener('click',async()=>{segmenter?.close?.();segmenter=null;loadPromise=null;mask=null;await apply()});
-$('download').addEventListener('click',()=>{if(!ready)return;canvas.toBlob(blob=>{if(!blob){status('PNG export failed');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='portrait-studio-'+canvas.width+'x'+canvas.height+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),15000)},'image/png')});
-ctx.fillStyle='#a9ddff';ctx.fillRect(0,0,600,600);ctx.fillStyle='#34618a';ctx.font='22px system-ui';ctx.textAlign='center';ctx.fillText('Upload a portrait to begin',300,300);
-</script></body></html>
+const individual=[
+ ['cat',['පූසා','පූසෙක්','බළලා','balala','pusa','poosa','cat','பூனை','poonai']],
+ ['dog',['බල්ලා','බල්ලෙක්','බල්ලාගේ','balla','dog','நாய்','naai','nai']],
+ ['elephant',['අලියා','ඇතා','aliya','atha','elephant','யானை','yaanai']],
+ ['lion',['සිංහයා','sinhaya','lion','சிங்கம்','singam']],
+ ['tiger',['කොටියා','kotiya','tiger','புலி','puli']],
+ ['cow',['එළදෙන','හරකා','eladena','haraka','cow','மாடு','maadu']],
+ ['horse',['අශ්වයා','ashwaya','horse','குதிரை','kuthirai']],
+ ['rabbit',['හාවා','hava','haawa','rabbit','முயல்','muyal']],
+ ['monkey',['වඳුරා','wandura','vandura','monkey','குரங்கு','kurangu']],
+ ['peacock',['මොනරා','monara','peacock','மயில்','mayil']],
+ ['parrot',['ගිරවා','girawa','parrot','கிளி','kili']],
+ ['butterfly',['සමනලයා','samanalaya','butterfly','பட்டாம்பூச்சி','pattampoochi']],
+ ['sun',['ඉර','හිරු','ira','hiru','sun','சூரியன்','sooriyan']],
+ ['moon',['හඳ','සඳ','handa','sanda','moon','நிலா','nila']],
+ ['star',['තරු','තරුව','tharu','taru','star','நட்சத்திரம்','natchathiram']],
+ ['mango',['අඹ','amba','mango','மாம்பழம்','maambazham']],
+ ['banana',['කෙසෙල්','kesel','banana','வாழைப்பழம்','vaazhaipazham']],
+ ['apple',['ඇපල්','apal','apple','ஆப்பிள்','aapil']],
+ ['pineapple',['අන්නාසි','annasi','pineapple','அன்னாசி']],
+ ['coconut',['පොල්','pol','coconut','தேங்காய்','thengai']],
+ ['rose',['රෝස','rosa','rose','ரோஜா','roja']],
+ ['lotus',['නෙළුම්','nelum','lotus','தாமரை','thamarai']],
+ ['bus',['බස්','බස් රථය','bas','bus','பேருந்து','perunthu']],
+ ['car',['කාර්','මෝටර් රථය','kaar','car','கார்','kaar']],
+ ['train',['දුම්රිය','dumriya','train','ரயில்','rayil']],
+ ['airplane',['ගුවන් යානය','ගුවන්යානය','guwan yanaya','plane','airplane','விமானம்','vimaanam']],
+ ['bicycle',['බයිසිකලය','බයිසිකල්','baisikalaya','bicycle','மிதிவண்டி','mithivandi']],
+ ['rain',['වැස්ස','wassa','rain','மழை','mazhai']],
+ ['mountain',['කන්ද','kanda','mountain','மலை','malai']],
+ ['river',['ගඟ','ගග','ganga','river','ஆறு','aaru']],
+ ['beach',['මුහුදු වෙරළ','වෙරළ','werala','beach','கடற்கரை','kadarkarai']],
+ ['doctor',['වෛද්‍යවරයා','දොස්තර','doctor','dosthara','மருத்துவர்','maruththuvar']],
+ ['teacher',['ගුරුවරයා','ගුරුතුමිය','guru','teacher','ஆசிரியர்','aasiriyar']]
+];
+function normalize(s){return String(s).normalize('NFKC').toLocaleLowerCase().trim().replace(/\s+/g,' ')}
+function knownTerm(raw){const q=normalize(raw);for(const c of categories){if(normalize(c.en)===q||normalize(c.si)===q||normalize(c.ta)===q||c.words.some(w=>normalize(w)===q))return c.en}for(const [en,words] of individual){if(en===q||words.some(w=>normalize(w)===q))return en}return null}
+const state={term:'',label:'',continuation:null,loaded:0,images:new Set(),busy:false,nonce:0,selected:null};
+const stripHtml=s=>{const el=document.createElement('div');el.innerHTML=s||'';return el.textContent||''};
+function message(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(message.timer);message.timer=setTimeout(()=>t.style.display='none',4500)}
+const chips=$('#chips');for(const c of categories){const b=document.createElement('button');b.textContent=`${c.si} · ${c.en}`;b.type='button';b.addEventListener('click',()=>startSearch(c.en,c.si));chips.appendChild(b)}
+$('#searchForm').addEventListener('submit',async e=>{e.preventDefault();const q=$('#query').value.trim();if(q)await startSearch(q,q)});
+$('#more').addEventListener('click',()=>loadMore());
+async function wikidataEnglish(raw){const lang=/[\u0B80-\u0BFF]/.test(raw)?'ta':/[\u0D80-\u0DFF]/.test(raw)?'si':'en';if(lang==='en')return null;
+ try{const u=new URL('https://www.wikidata.org/w/api.php');Object.entries({action:'wbsearchentities',format:'json',origin:'*',search:raw,language:lang,limit:'2'}).forEach(([k,v])=>u.searchParams.set(k,v));const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),7000);let j;try{const r=await fetch(u,{signal:ctrl.signal});if(!r.ok)throw Error('Wikidata');j=await r.json()}finally{clearTimeout(timer)}const id=j.search?.[0]?.id;if(!id)return null;const u2=new URL('https://www.wikidata.org/w/api.php');Object.entries({action:'wbgetentities',format:'json',origin:'*',ids:id,props:'labels',languages:'en'}).forEach(([k,v])=>u2.searchParams.set(k,v));const r=await fetch(u2);const data=await r.json();return data.entities?.[id]?.labels?.en?.value||null}catch{return null}}
+async function startSearch(raw,label){const nonce=++state.nonce;state.images.clear();state.continuation=null;state.loaded=0;state.busy=false;state.label=label;state.term=knownTerm(raw)||raw;$('#query').value=label;$('#heading').textContent=`Results: ${label}`;$('#results').replaceChildren();$('#empty').classList.add('hidden');$('#more').classList.add('hidden');$('#loader').classList.remove('hidden');$('#status').textContent='Searching…';
+ if(state.term===raw && /[\u0B80-\u0BFF\u0D80-\u0DFF]/.test(raw)){const translated=await wikidataEnglish(raw);if(nonce!==state.nonce)return;if(translated)state.term=translated}
+ await loadMore(nonce)}
+async function loadMore(nonce=state.nonce){if(state.busy && nonce===state.nonce)return;state.busy=true;$('#more').classList.add('hidden');$('#loader').classList.remove('hidden');$('#status').textContent='Loading images…';
+ try{const params={action:'query',format:'json',origin:'*',generator:'search',gsrsearch:state.term,gsrnamespace:'6',gsrlimit:'40',prop:'imageinfo',iiprop:'url|size|mime|extmetadata',iiurlwidth:'540',iiextmetadatafilter:'LicenseShortName|Artist|Credit|AttributionRequired'};if(state.continuation)Object.assign(params,state.continuation);const url=new URL('https://commons.wikimedia.org/w/api.php');Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),20000);let data;try{const res=await fetch(url,{signal:ctrl.signal});if(!res.ok)throw new Error(`HTTP ${res.status}`);data=await res.json()}finally{clearTimeout(timer)}if(nonce!==state.nonce)return;if(data.error)throw Error(data.error.info||'Search failed');state.continuation=data.continue||null;const pages=Object.values(data.query?.pages||{}).sort((a,b)=>(a.index??0)-(b.index??0));let count=0;for(const p of pages){const info=p.imageinfo?.[0];if(!info?.url||!info.mime?.startsWith('image/')||!['image/jpeg','image/png','image/webp','image/gif'].includes(info.mime)||state.images.has(p.pageid))continue;state.images.add(p.pageid);count++;renderTile({title:p.title.replace(/^File:/,''),thumb:info.thumburl||info.url,original:info.url,page:info.descriptionurl||`https://commons.wikimedia.org/wiki/${encodeURIComponent(p.title.replaceAll(' ','_'))}`,width:info.width,height:info.height,mime:info.mime,license:stripHtml(info.extmetadata?.LicenseShortName?.value)||'See source',artist:stripHtml(info.extmetadata?.Artist?.value)||'See source',credit:stripHtml(info.extmetadata?.Credit?.value)||''})}state.loaded+=count;$('#status').textContent=`${state.loaded} images shown`;$('#empty').classList.toggle('hidden',state.loaded!==0);if(state.loaded===0)$('#empty').textContent='රූප හමු නොවුණා. වෙනත් වචනයකින් Search කරන්න. / No images found. Try another term.';$('#more').classList.toggle('hidden',!state.continuation);
+ }catch(err){if(nonce!==state.nonce)return;$('#status').textContent='Unable to load results';$('#empty').classList.remove('hidden');$('#empty').textContent=`පින්තූර load වුණේ නැහැ. Internet connection පරීක්ෂා කර නැවත උත්සාහ කරන්න. (${err.message})`;$('#more').classList.remove('hidden');$('#more').textContent='Retry search';}finally{if(nonce===state.nonce){state.busy=false;$('#loader').classList.add('hidden')}}}
+function renderTile(item){const b=document.createElement('button');b.type='button';b.className='tile';const img=document.createElement('img');img.src=item.thumb;img.alt=item.title;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';const name=document.createElement('span');name.className='name';name.textContent=item.title;b.append(img,name);b.addEventListener('click',()=>openPreview(item));$('#results').appendChild(b)}
+function openPreview(item){state.selected=item;$('#bigImage').src=item.thumb;$('#bigImage').alt=item.title;$('#pictureTitle').textContent=item.title;$('#dimensions').textContent=`${item.width||'?'} × ${item.height||'?'} px • ${item.mime}`;$('#original').href=item.original;$('#sourcePage').href=item.page;$('#credits').textContent=`License: ${item.license}. Creator: ${item.artist}${item.credit?' • Credit: '+item.credit:''}. Always verify conditions on the original file page.`;$('#downloadStatus').textContent='';$('#preview').showModal()}
+$('#close').addEventListener('click',()=>$('#preview').close());$('#preview').addEventListener('click',e=>{if(e.target===$('#preview'))$('#preview').close()});
+$('#download').addEventListener('click',async()=>{const item=state.selected;if(!item)return;const btn=$('#download');btn.disabled=true;btn.textContent='Downloading…';$('#downloadStatus').textContent='Trying to save the original image…';try{const res=await fetch(item.original);if(!res.ok)throw Error('Download unavailable');const blob=await res.blob();const blobUrl=URL.createObjectURL(blob);const a=document.createElement('a');a.href=blobUrl;a.download=item.title.replace(/[\\/:*?"<>|]/g,'_').slice(0,150);document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(blobUrl),15000);$('#downloadStatus').textContent='Download started. Please check the image licence before reuse.'}catch{$('#downloadStatus').textContent='Automatic download was blocked. Original image opened in a new tab; save it from there.';window.open(item.original,'_blank','noopener,noreferrer')}finally{btn.disabled=false;btn.textContent='⬇ Download image'}});
+// Show a useful first page without requiring an initial click.
+startSearch('Animals','සතුන්');
+</script>
+</body></html>
